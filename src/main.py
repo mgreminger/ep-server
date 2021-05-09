@@ -49,7 +49,8 @@ async def delete_user(user_id: int):
 
 register_tortoise(
     app,
-    db_url="sqlite://:memory:",
+    # db_url="sqlite://:memory:",
+    db_url="sqlite:///tmp/test.db",
     modules={"models": ["models"]},
     generate_schemas=True,
     add_exception_handlers=True,
