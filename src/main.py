@@ -1,57 +1,53 @@
 from typing import List
 
-from fastapi import FastAPI, HTTPException
-from models import User_Pydantic, UserIn_Pydantic, Users
-from pydantic import BaseModel
+from fastapi import FastAPI
+from models import Category, Item, metadata, database
 
-from tortoise.contrib.fastapi import HTTPNotFoundError, register_tortoise
+app = FastAPI()
 
-app = FastAPI(title="Tortoise ORM FastAPI example")
+app.state.database = database
 
-
-class Status(BaseModel):
-    message: str
-
-
-@app.get("/users", response_model=List[User_Pydantic])
-async def get_users():
-    return await User_Pydantic.from_queryset(Users.all())
+@app.on_event("startup")
+async def startup() -> None:
+    database_ = app.state.database
+    if not database_.is_connected:
+        await database_.connect()
 
 
-@app.post("/users", response_model=User_Pydantic)
-async def create_user(user: UserIn_Pydantic):
-    user_obj = await Users.create(**user.dict(exclude_unset=True))
-    return await User_Pydantic.from_tortoise_orm(user_obj)
+@app.on_event("shutdown")
+async def shutdown() -> None:
+    database_ = app.state.database
+    if database_.is_connected:
+        await database_.disconnect()
 
 
-@app.get(
-    "/user/{user_id}", response_model=User_Pydantic, responses={404: {"model": HTTPNotFoundError}}
-)
-async def get_user(user_id: int):
-    return await User_Pydantic.from_queryset_single(Users.get(id=user_id))
+@app.get("/items/", response_model=List[Item])
+async def get_items():
+    items = await Item.objects.select_related("category").all()
+    return items
 
 
-@app.put(
-    "/user/{user_id}", response_model=User_Pydantic, responses={404: {"model": HTTPNotFoundError}}
-)
-async def update_user(user_id: int, user: UserIn_Pydantic):
-    await Users.filter(id=user_id).update(**user.dict(exclude_unset=True))
-    return await User_Pydantic.from_queryset_single(Users.get(id=user_id))
+@app.post("/items/", response_model=Item)
+async def create_item(item: Item):
+    await item.save()
+    return item
 
 
-@app.delete("/user/{user_id}", response_model=Status, responses={404: {"model": HTTPNotFoundError}})
-async def delete_user(user_id: int):
-    deleted_count = await Users.filter(id=user_id).delete()
-    if not deleted_count:
-        raise HTTPException(status_code=404, detail=f"User {user_id} not found")
-    return Status(message=f"Deleted user {user_id}")
+@app.post("/categories/", response_model=Category)
+async def create_category(category: Category):
+    await category.save()
+    return category
 
 
-register_tortoise(
-    app,
-    # db_url="sqlite://:memory:",
-    db_url="sqlite:///tmp/test.db",
-    modules={"models": ["models"]},
-    generate_schemas=True,
-    add_exception_handlers=True,
-)
+@app.put("/items/{item_id}")
+async def get_item(item_id: int, item: Item):
+    item_db = await Item.objects.get(pk=item_id)
+    return await item_db.update(**item.dict())
+
+
+@app.delete("/items/{item_id}")
+async def delete_item(item_id: int, item: Item = None):
+    if item:
+        return {"deleted_rows": await item.delete()}
+    item_db = await Item.objects.get(pk=item_id)
+    return {"deleted_rows": await item_db.delete()}
