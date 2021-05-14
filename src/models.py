@@ -1,29 +1,26 @@
 from typing import Optional
+import datetime
 
 import databases
 import sqlalchemy
+import pydantic
 
 import ormar
+
+from shortuuid import uuid
 
 metadata = sqlalchemy.MetaData()
 database = databases.Database("sqlite:///test.db")
 
-class Category(ormar.Model):
+class Document(ormar.Model):
     class Meta:
-        tablename = "categories"
+        tablename = "documents"
         metadata = metadata
         database = database
 
-    id: int = ormar.Integer(primary_key=True)
-    name: str = ormar.String(max_length=100)
+    id: str = ormar.String(max_length=22, min_length=22, primary_key=True, default=uuid)
+    data: pydantic.Json = ormar.JSON(nullable=False)
+    creation: datetime.datetime = ormar.DateTime(default=datetime.datetime.now)
+    access: datetime.datetime = ormar.DateTime(default=datetime.datetime.now)
+    num_reads: int = ormar.Integer(default=0)
 
-
-class Item(ormar.Model):
-    class Meta:
-        tablename = "items"
-        metadata = metadata
-        database = database
-
-    id: int = ormar.Integer(primary_key=True)
-    name: str = ormar.String(max_length=100)
-    category: Optional[Category] = ormar.ForeignKey(Category, nullable=True)

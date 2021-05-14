@@ -1,7 +1,7 @@
 from typing import List
 
-from fastapi import FastAPI
-from models import Category, Item, metadata, database
+from fastapi import FastAPI, Request
+from models import Document, database
 
 app = FastAPI()
 
@@ -21,33 +21,10 @@ async def shutdown() -> None:
         await database_.disconnect()
 
 
-@app.get("/items/", response_model=List[Item])
-async def get_items():
-    items = await Item.objects.select_related("category").all()
-    return items
+@app.post("/documents/")
+async def create_document(request: Request):
+    data = await request.json()
+    document = Document(data=data)
+    await document.save()
 
-
-@app.post("/items/", response_model=Item)
-async def create_item(item: Item):
-    await item.save()
-    return item
-
-
-@app.post("/categories/", response_model=Category)
-async def create_category(category: Category):
-    await category.save()
-    return category
-
-
-@app.put("/items/{item_id}")
-async def get_item(item_id: int, item: Item):
-    item_db = await Item.objects.get(pk=item_id)
-    return await item_db.update(**item.dict())
-
-
-@app.delete("/items/{item_id}")
-async def delete_item(item_id: int, item: Item = None):
-    if item:
-        return {"deleted_rows": await item.delete()}
-    item_db = await Item.objects.get(pk=item_id)
-    return {"deleted_rows": await item_db.delete()}
+    return {"id":document.id}
