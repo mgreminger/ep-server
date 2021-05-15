@@ -1,11 +1,10 @@
-from typing import List
-
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from models import Document, database
 
 app = FastAPI()
 
 app.state.database = database
+
 
 @app.on_event("startup")
 async def startup() -> None:
@@ -28,3 +27,10 @@ async def create_document(request: Request):
     await document.save()
 
     return {"id":document.id}
+
+
+@app.get("/documents/{id}")
+async def get_document(id):
+    document = await Document.objects.get(id=id)
+
+    return Response(content=document.data, media_type="application/json")

@@ -1,4 +1,3 @@
-from typing import Optional
 import datetime
 
 import databases
@@ -11,6 +10,7 @@ from shortuuid import uuid
 
 metadata = sqlalchemy.MetaData()
 database = databases.Database("sqlite:///test.db")
+
 
 class Document(ormar.Model):
     class Meta:
