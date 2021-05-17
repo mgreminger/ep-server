@@ -22,7 +22,7 @@ async def shutdown() -> None:
 
 @app.post("/documents/")
 async def create_document(request: Request):
-    data = await request.json()
+    data = await request.body()
     document = Document(data=data)
     await document.save()
 
