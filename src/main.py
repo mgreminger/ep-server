@@ -1,3 +1,5 @@
+import datetime
+
 from fastapi import FastAPI, Request, Response
 from models import Document, database
 
@@ -32,5 +34,10 @@ async def create_document(request: Request):
 @app.get("/documents/{id}")
 async def get_document(id):
     document = await Document.objects.get(id=id)
+
+    document.num_reads += 1
+    document.access = datetime.datetime.now()
+
+    await document.update()
 
     return Response(content=document.data, media_type="application/json")
