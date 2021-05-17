@@ -1,7 +1,9 @@
 import datetime
 
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, HTTPException
 from models import Document, database
+
+from ormar.exceptions import NoMatch
 
 app = FastAPI()
 
@@ -33,7 +35,10 @@ async def create_document(request: Request):
 
 @app.get("/documents/{id}")
 async def get_document(id):
-    document = await Document.objects.get(id=id)
+    try:
+        document = await Document.objects.get(id=id)
+    except NoMatch:
+        raise HTTPException(status_code=404, detail="Document not found")
 
     document.num_reads += 1
     document.access = datetime.datetime.now()
