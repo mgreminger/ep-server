@@ -1,6 +1,7 @@
 import datetime
 
 from fastapi import FastAPI, Request, Response, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from models import Document, database
 
 from ormar.exceptions import NoMatch
@@ -9,6 +10,12 @@ app = FastAPI()
 
 app.state.database = database
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 @app.on_event("startup")
 async def startup() -> None:
