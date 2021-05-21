@@ -37,10 +37,10 @@ async def create_document(request: Request):
     document = Document(data=data)
     await document.save()
 
-    return {"url":f"http://127.0.0.1:8000/{document.id}"}
+    return {"url":f"http://127.0.0.1:8000/documents/{document.id}"}
 
 
-@app.get("/{id}")
+@app.get("/documents/{id}")
 async def get_document(id):
     try:
         document = await Document.objects.get(id=id)
