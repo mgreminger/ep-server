@@ -1,5 +1,7 @@
 import datetime
 
+from hashlib import sha512
+
 from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from models import Document, database
@@ -34,9 +36,20 @@ async def shutdown() -> None:
 @app.post("/documents/")
 async def create_document(request: Request):
     data = await request.body()
-    document = Document(data=data)
-    await document.save()
+    data_hash = sha512(data).hexdigest()
+    data = data.decode('utf-8')
 
+    try:
+        document = await Document.objects.get(data_hash=data_hash)
+
+        if data != document.data:
+            # hash collision
+            raise NoMatch('Not found')
+
+    except NoMatch:
+        document = Document(data=data, data_hash=data_hash)
+        await document.save()
+    
     return {"url":f"localhost:5000/#{document.id}"}
 
 
