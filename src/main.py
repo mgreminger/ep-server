@@ -6,7 +6,7 @@ from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from models import Document, database
 
-from ormar.exceptions import NoMatch
+from ormar.exceptions import NoMatch, MultipleMatches
 
 app = FastAPI()
 
@@ -46,7 +46,7 @@ async def create_document(request: Request):
             # hash collision
             raise NoMatch('Not found')
 
-    except NoMatch:
+    except (NoMatch, MultipleMatches):
         document = Document(data=data, data_hash=data_hash)
         await document.save()
     
