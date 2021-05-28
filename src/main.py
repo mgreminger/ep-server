@@ -36,7 +36,7 @@ async def shutdown() -> None:
 @app.post("/documents/{request_hash}")
 async def create_document(request_hash, request: Request):
     data = await request.body()
-    data_hash = sha512(b'go'+data+b'math').hexdigest()
+    data_hash = sha512(data+b'math').hexdigest()
 
     if (data_hash != request_hash):
         raise HTTPException(status_code=404, detail="Document not found.")
