@@ -54,7 +54,7 @@ async def create_document(request_hash, request: Request):
         document = Document(data=data, data_hash=data_hash)
         await document.save()
     
-    return {"url":f"localhost:5000/#{document.id}"}
+    return {"url":f"localhost:5000/#{document.id}", "hash":document.id}
 
 
 @app.get("/documents/{id}")
