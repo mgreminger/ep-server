@@ -8,6 +8,8 @@ from epserver.models import Document, database
 
 from ormar.exceptions import NoMatch, MultipleMatches
 
+spa_url = "engineeringpaper.xyz"
+
 app = FastAPI()
 
 app.state.database = database
@@ -54,7 +56,7 @@ async def create_document(request_hash, request: Request):
         document = Document(data=data, data_hash=data_hash)
         await document.save()
     
-    return {"url":f"localhost:5000/#{document.id}", "hash":document.id}
+    return {"url":f"{spa_url}/#{document.id}", "hash":document.id}
 
 
 @app.get("/documents/{id}")
