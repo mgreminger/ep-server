@@ -8,7 +8,8 @@ from epserver.models import Document, database
 
 from ormar.exceptions import NoMatch, MultipleMatches
 
-spa_url = "engineeringpaper.xyz"
+#spa_url = "https://engineeringpaper.xyz"
+spa_url = "https://engineeringpaper.pages.dev"
 
 app = FastAPI()
 
