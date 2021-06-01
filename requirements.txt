@@ -1,9 +1,11 @@
+asyncpg==0.23.0
+psycopg2-binary==2.8.6
 certifi==2020.12.5
 fastapi==0.63.0
 httptools==0.1.2
 ipython==7.22.0
 mypy==0.812
-ormar==0.10.8
+ormar==0.10.9
 python-dotenv==0.17.0
 pyyaml==5.4.1
 shortuuid==1.0.1
