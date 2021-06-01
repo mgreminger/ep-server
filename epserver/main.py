@@ -4,7 +4,7 @@ from hashlib import sha512
 
 from fastapi import FastAPI, Request, Response, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from models import Document, database
+from epserver.models import Document, database
 
 from ormar.exceptions import NoMatch, MultipleMatches
 

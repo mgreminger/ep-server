@@ -1,3 +1,5 @@
+import os
+
 import datetime
 
 import databases
@@ -8,8 +10,10 @@ import ormar
 
 from shortuuid import uuid
 
+database_url = os.environ.get("DATABASE_URL", "sqlite:///test.db")
+
 metadata = sqlalchemy.MetaData()
-database = databases.Database("sqlite:///test.db")
+database = databases.Database(database_url)
 
 
 class Document(ormar.Model):
