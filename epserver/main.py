@@ -10,7 +10,7 @@ from ormar.exceptions import NoMatch, MultipleMatches
 
 spa_url = "https://engineeringpaper.xyz"
 
-app = FastAPI()
+app = FastAPI(docs_url=None, redoc_url=None)
 
 app.state.database = database
 
