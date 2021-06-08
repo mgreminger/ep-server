@@ -1,11 +1,17 @@
+import json
 import datetime
+from typing import List, Dict
 
 from hashlib import sha512
 
 from fastapi import FastAPI, Request, Response, HTTPException
+from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from epserver.models import Document, database
 
+import pydantic
+
+import ormar
 from ormar.exceptions import NoMatch, MultipleMatches
 
 spa_url = "https://engineeringpaper.xyz"
@@ -20,6 +26,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
+
+
+class DocumentPostRequest(pydantic.BaseModel):
+    title: str
+    document: str
+    history: List[Dict[str, str]]
+
+
+class DocumentPostReponse(pydantic.BaseModel):
+    url: str
+    hash: str
+    history: str
+
+class DocumentGetReponse(pydantic.BaseModel):
+    data: str
+    history: str
 
 @app.on_event("startup")
 async def startup() -> None:
@@ -36,8 +58,9 @@ async def shutdown() -> None:
 
 
 @app.post("/documents/{request_hash}")
-async def create_document(request_hash, request: Request):
-    data = await request.body()
+async def create_document(request_hash, request: DocumentPostRequest):
+    title = request.title
+    data = request.document.encode('utf-8')
     data_hash = sha512(b' '+data+b'math').hexdigest()
 
     if (data_hash != request_hash):
@@ -53,10 +76,18 @@ async def create_document(request_hash, request: Request):
             raise NoMatch('Not found')
 
     except (NoMatch, MultipleMatches):
-        document = Document(data=data, data_hash=data_hash)
+        history = request.history
+        document = Document(data=data, data_hash=data_hash,
+                            title=title, history=history)
         await document.save()
+
+        document.history.append({"url": f"{spa_url}/#{document.id}",
+                                 "creation":  document.creation.isoformat()})
+        await document.update()
     
-    return {"url":f"{spa_url}/#{document.id}", "hash":document.id}
+    return DocumentPostReponse(url=f"{spa_url}/#{document.id}",
+                               hash=document.id,
+                               history=json.dumps(document.history))
 
 
 @app.get("/documents/{id}")
@@ -71,4 +102,5 @@ async def get_document(id):
 
     await document.update()
 
-    return Response(content=document.data, media_type="application/json")
+    return DocumentGetReponse(data=document.data,
+                              history=json.dumps(document.history))
