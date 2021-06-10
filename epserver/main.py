@@ -69,10 +69,18 @@ async def create_document(request_hash, request: DocumentPostRequest):
     data = data.decode('utf-8')
 
     try:
+        if len(request.history) == 0:
+            # document has never been saved, no point checking
+            raise NoMatch('Not found')
+
         document = await Document.objects.get(data_hash=data_hash)
 
+        if request.history[0]['hash'] != document.id:
+            # matching document with different history, create new document
+            raise NoMatch('Not found')
+
         if data != document.data:
-            # hash collision
+            # hash collision, create new document
             raise NoMatch('Not found')
 
     except (NoMatch, MultipleMatches):
@@ -82,6 +90,7 @@ async def create_document(request_hash, request: DocumentPostRequest):
         await document.save()
 
         document.history.insert(0, {"url": f"{spa_url}/#{document.id}",
+                                    "hash": document.id,
                                     "creation":  document.creation.isoformat()})
         await document.update()
     
