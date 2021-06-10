@@ -90,8 +90,7 @@ async def create_document(request_hash, request: DocumentPostRequest):
         await document.save()
 
         document.history.insert(0, {"url": f"{spa_url}/#{document.id}",
-                                    "hash": document.id,
-                                    "creation":  document.creation.isoformat()})
+                                    "creation": f"{document.creation.isoformat()}Z"})
         await document.update()
     
     return DocumentPostReponse(url=f"{spa_url}/#{document.id}",
@@ -107,7 +106,7 @@ async def get_document(id):
         raise HTTPException(status_code=404, detail="Document not found")
 
     document.num_reads += 1
-    document.access = datetime.datetime.now()
+    document.access = datetime.datetime.utcnow()
 
     await document.update()
 
