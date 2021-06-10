@@ -90,6 +90,7 @@ async def create_document(request_hash, request: DocumentPostRequest):
         await document.save()
 
         document.history.insert(0, {"url": f"{spa_url}/#{document.id}",
+                                    "hash": document.id,
                                     "creation": f"{document.creation.isoformat()}Z"})
         await document.update()
     
