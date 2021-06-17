@@ -34,14 +34,17 @@ class DocumentPostRequest(pydantic.BaseModel):
     history: List[Dict[str, str]]
 
 
-class DocumentPostReponse(pydantic.BaseModel):
+class DocumentPostResponse(pydantic.BaseModel):
     url: str
     hash: str
     history: str
 
-class DocumentGetReponse(pydantic.BaseModel):
+class DocumentGetResponse(pydantic.BaseModel):
     data: str
     history: str
+
+class DeleteTestSheetsResponse(pydantic.BaseModel):
+    numRowsDeleted: int
 
 @app.on_event("startup")
 async def startup() -> None:
@@ -94,9 +97,9 @@ async def create_document(request_hash, request: DocumentPostRequest):
                                     "creation": f"{document.creation.isoformat()}Z"})
         await document.update()
     
-    return DocumentPostReponse(url=f"{spa_url}/#{document.id}",
-                               hash=document.id,
-                               history=json.dumps(document.history))
+    return DocumentPostResponse(url=f"{spa_url}/#{document.id}",
+                                hash=document.id,
+                                history=json.dumps(document.history))
 
 
 @app.get("/documents/{id}")
@@ -111,5 +114,18 @@ async def get_document(id):
 
     await document.update()
 
-    return DocumentGetReponse(data=document.data,
+    return DocumentGetResponse(data=document.data,
                               history=json.dumps(document.history))
+
+
+@app.put("/delete_test_sheets")
+async def delete_test_sheets():
+    try:
+        num_rows_deleted = await Document.objects.delete(title='Title for testing purposes only, will be deleted from database automatically')
+    except NoMatch:
+        # nothing needs to be done, no test sheets in database
+        return DeleteTestSheetsResponse(numRowsDeleted = 0)
+
+    return DeleteTestSheetsResponse(numRowsDeleted = num_rows_deleted)
+
+    

@@ -12,6 +12,8 @@ from shortuuid import uuid
 
 database_url = os.environ.get("DATABASE_URL", "sqlite:///test.db")
 
+database_url = f"{database_url}?max_connections=19"
+
 metadata = sqlalchemy.MetaData()
 database = databases.Database(database_url)
 
