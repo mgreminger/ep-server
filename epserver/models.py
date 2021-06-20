@@ -13,7 +13,7 @@ from shortuuid import uuid
 database_url = os.environ.get("DATABASE_URL", "sqlite:///test.db")
 
 metadata = sqlalchemy.MetaData()
-database = databases.Database(database_url, max_size=19)
+database = databases.Database(database_url, min_size=5, max_size=18)
 
 
 class Document(ormar.Model):
