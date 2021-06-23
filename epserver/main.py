@@ -15,6 +15,7 @@ import ormar
 from ormar.exceptions import NoMatch, MultipleMatches
 
 spa_url = "https://engineeringpaper.xyz"
+max_size = 2000000 # max length of byte string that represents sheet
 
 app = FastAPI(docs_url=None, redoc_url=None)
 
@@ -22,7 +23,8 @@ app.state.database = database
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5000", "https://engineeringpaper.xyz"],
+    allow_origin_regex="https://.*\.engineeringpaper\.pages\.dev",
     allow_methods=["*"],
     allow_headers=["*"]
 )
@@ -88,6 +90,10 @@ async def create_document(request_hash, request: DocumentPostRequest):
 
     except (NoMatch, MultipleMatches):
         history = request.history
+
+        if len(data) > max_size:
+            raise HTTPException(status_code=413, detail="Sheet too large for database, reduce size of images in documentation cells.")
+
         document = Document(data=data, data_hash=data_hash,
                             title=title, history=history)
         await document.save()
