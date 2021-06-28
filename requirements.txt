@@ -5,7 +5,7 @@ fastapi==0.65.2
 httptools==0.1.2
 ipython==7.22.0
 mypy==0.812
-ormar==0.10.9
+ormar==0.10.13
 python-dotenv==0.17.0
 pyyaml==5.4.1
 shortuuid==1.0.1
