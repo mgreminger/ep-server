@@ -1,1 +1,1 @@
-web: gunicorn epserver.main:app -k uvicorn.workers.UvicornWorker
+web: FORWARDED_ALLOW_IPS="*" gunicorn epserver.main:app -k uvicorn.workers.UvicornWorker
