@@ -31,7 +31,7 @@ class Document(ormar.Model):
     data: str = ormar.Text(nullable=False)
     data_hash: str = ormar.String(max_length=128, nullable=False)
     creation: datetime.datetime = ormar.DateTime(default=datetime.datetime.utcnow)
+    creation_ip: str = ormar.String(max_length=50, nullable=False)
     access: datetime.datetime = ormar.DateTime(default=datetime.datetime.utcnow)
     num_reads: int = ormar.Integer(default=0)
     history: pydantic.Json = ormar.JSON(nullable=False)
-

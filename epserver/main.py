@@ -30,12 +30,6 @@ app.add_middleware(
 )
 
 
-class DocumentPostRequest(pydantic.BaseModel):
-    title: str
-    document: str
-    history: List[Dict[str, str]]
-
-
 class DocumentPostResponse(pydantic.BaseModel):
     url: str
     hash: str
@@ -63,9 +57,11 @@ async def shutdown() -> None:
 
 
 @app.post("/documents/{request_hash}")
-async def create_document(request_hash, request: DocumentPostRequest):
-    title = request.title
-    data = request.document.encode('utf-8')
+async def create_document(request_hash, request: Request):
+    request_dict = json.loads(await request.body())
+
+    title = request_dict['title']
+    data = request_dict['document'].encode('utf-8')
     data_hash = sha512(b' '+data+b'math').hexdigest()
 
     if (data_hash != request_hash):
@@ -74,13 +70,13 @@ async def create_document(request_hash, request: DocumentPostRequest):
     data = data.decode('utf-8')
 
     try:
-        if len(request.history) == 0:
+        if len(request_dict['history']) == 0:
             # document has never been saved, no point checking
             raise NoMatch('Not found')
 
         document = await Document.objects.get(data_hash=data_hash)
 
-        if request.history[0]['hash'] != document.id:
+        if request_dict['history'][0]['hash'] != document.id:
             # matching document with different history, create new document
             raise NoMatch('Not found')
 
@@ -89,20 +85,21 @@ async def create_document(request_hash, request: DocumentPostRequest):
             raise NoMatch('Not found')
 
     except (NoMatch, MultipleMatches):
-        history = request.history
+        history = request_dict['history']
 
         if len(data) > max_size:
             raise HTTPException(status_code=413, detail="Sheet too large for database, reduce size of images in documentation cells.")
 
         document = Document(data=data, data_hash=data_hash,
-                            title=title, history=history)
+                            title=title, history=history,
+                            creation_ip=request.client.host)
         await document.save()
 
         document.history.insert(0, {"url": f"{spa_url}/#{document.id}",
                                     "hash": document.id,
                                     "creation": f"{document.creation.isoformat()}Z"})
         await document.update()
-    
+
     return DocumentPostResponse(url=f"{spa_url}/#{document.id}",
                                 hash=document.id,
                                 history=json.dumps(document.history))
