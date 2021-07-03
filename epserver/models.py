@@ -17,7 +17,7 @@ metadata = sqlalchemy.MetaData()
 if database_url.startswith("sqlite"):
     database = databases.Database(database_url)
 else:
-    database = databases.Database(database_url, min_size=5, max_size=18)
+    database = databases.Database(database_url, min_size=10, max_size=100)
 
 
 class Document(ormar.Model):
