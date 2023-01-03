@@ -23,7 +23,7 @@ app.state.database = database
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5000", "https://engineeringpaper.xyz"],
+    allow_origins=["http://localhost:5000", "http://localhost:8788", "https://engineeringpaper.xyz"],
     allow_origin_regex="https://.*\.engineeringpaper\.pages\.dev",
     allow_methods=["*"],
     allow_headers=["*"]
